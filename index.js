@@ -7,7 +7,7 @@ const bot = new SlackBot({
 
 const postMessage = (text, params = {}) => {
 	params.icon_emoji = params.icon_emoji || ':zglobex:';
-	return bot.postMessageToGroup('zglobex_giga_liga', text, params);
+	return bot.postMessageToGroup('zglobex-bot-develop', text, params);
 };
 
 const addListener = (eventType, callback) => {
