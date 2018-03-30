@@ -49,6 +49,7 @@ let initiationTime = null;
 let oneMoreTimer = null;
 
 addListener('message', (message) => {
+	if (message.channel !== 'G9YUE627P') return; // zglobex-bot-test channel
 	if (!message || !message.text) return;
 
 	// Check if someone wants to play under wheat
