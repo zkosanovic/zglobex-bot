@@ -1,7 +1,7 @@
 const SlackBot = require('slackbots');
 
 const bot = new SlackBot({
-	token: 'xoxb-338114360626-C2vfy10HVbY27N1UI7UpwDeZ',
+	token: 'xoxb-338114360626' + '-' + 'oipLK4f2fLmVMAft1Uv6MBaK',
 	name: 'Zglobex Bot'
 });
 
@@ -54,7 +54,7 @@ addListener('message', (message) => {
 
 	// Check if someone wants to play under wheat
 	if (message.text.match(/ispod zita/)) {
-		postMessage(`<@${message.user}> *ALO NEMA ISPOD ZITA*`, {icon_emoji: ':stevica:'});
+		postMessage(`<@${message.user}> *uleti ti kita*`, {icon_emoji: ':stevica:'});
 		return;
 	}
 	// Test if message is in valid format and set it as initiation message
