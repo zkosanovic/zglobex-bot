@@ -117,7 +117,7 @@ addListener('reaction_added', () => {
 						{
 							fallback: 'Plavi',
 							color: '#0000ff',
-							text: `Odbrana: ${mentionPlayers[2]} \nNapad:${mentionPlayers[3]}`
+							text: `Odbrana: ${mentionPlayers[2]} \nNapad: ${mentionPlayers[3]}`
 						}
 					]
 				});
