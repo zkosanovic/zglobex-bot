@@ -1,14 +1,19 @@
 require('dotenv').config()
 const SlackBot = require('slackbots');
 
+const BOT_NAME = 'Zglobex Bot';
+const DEFAULT_EMOJI = ':zglobex:';
+const SLACK_CHANNEL = 'zglobex_giga_liga';
+const SLACK_API_TOKEN = process.env.SLACK_API_TOKEN;
+
 const bot = new SlackBot({
-	token: process.env.SLACK_API_TOKEN,
-	name: 'Zglobex Bot'
+	token: SLACK_API_TOKEN,
+	name: BOT_NAME
 });
 
 const postMessage = (text, params = {}) => {
-	params.icon_emoji = params.icon_emoji || ':zglobex:';
-	return bot.postMessageToGroup('zglobex_giga_liga', text, params);
+	params.icon_emoji = params.icon_emoji || DEFAULT_EMOJI;
+	return bot.postMessageToGroup(SLACK_CHANNEL, text, params);
 };
 
 const addListener = (eventType, callback) => {
