@@ -1,22 +1,22 @@
 require('dotenv').config()
-const SlackBot = require('slackbots');
+const config = require('./config.json');
 
-const BOT_NAME = 'Zglobex Bot';
-const DEFAULT_EMOJI = ':zglobex:';
-const SLACK_CHANNEL = 'zglobex_giga_liga';
 const SLACK_API_TOKEN = process.env.SLACK_API_TOKEN;
+const INITIATION_REGEX = /ajmo+( :([0-9a-z-_]+):)?/;
+const UNDER_RADAR_REGEX = new RegExp(config.underRadarRegex);
 
-const bot = new SlackBot({
+const SlackBot = require('slackbots');
+var bot = new SlackBot({
 	token: SLACK_API_TOKEN,
-	name: BOT_NAME
+	name: config.botName
 });
 
-const postMessage = (text, params = {}) => {
-	params.icon_emoji = params.icon_emoji || DEFAULT_EMOJI;
-	return bot.postMessageToGroup(SLACK_CHANNEL, text, params);
+function postMessage(text, params = {}) {
+	params.icon_emoji = params.icon_emoji || config.defaultEmoji;
+	return bot.postMessageToGroup(config.slackChannel, text, params);
 };
 
-const addListener = (eventType, callback) => {
+function addListener(eventType, callback) {
 	bot.on('message', (event) => {
 		if (event.type === eventType) {
 			callback(event);
@@ -24,7 +24,7 @@ const addListener = (eventType, callback) => {
 	})
 };
 
-const shuffle = array => {
+function shuffle(array) {
 	let j, x, i;
 	for (i = array.length - 1; i > 0; i--) {
 		j = Math.floor(Math.random() * (i + 1));
@@ -35,85 +35,71 @@ const shuffle = array => {
 };
 
 bot.on('start', function () {
-	console.log('bot started');
+	console.log('Bot started.');
 });
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-const MINIMUM_DELAY = 30 * 1000; // 30 seconds delay between initiating parties
-const INITIATION_REGEX = /ajmo+ :(\S+):/i;
-const NENAD = 'U5MN91MCL';
-const ONE_MORE_TIMEOUT = 10 * 1000; // 10 seconds before sending @here jos 1
 
 let msg = null;
 let reaction = null;
 let initiator = null;
 let initiationMessageText = null;
 let initiationTime = null;
-let oneMoreTimer = null;
+let oneMorePlayerTimer = null;
 
 addListener('message', (message) => {
-	if (message.channel !== 'G759BM2DA') return; // zglobex_giga_liga channel
+	if (message.channel !== config.slackChannelId) return;
 	if (!message || !message.text) return;
 
-	// Check if someone wants to play under wheat
-	if (message.text.match(/ispod zita/)) {
-		postMessage(`<@${message.user}> *ALO NEMA ISPOD ZITA*`, {icon_emoji: ':stevica:'});
+	// Check if someone wants to play under the radar
+	if (message.text.match(UNDER_RADAR_REGEX)) {
+		postMessage(`<@${message.user}> *ALO, NEMA ISPOD ŽITA!*`, {icon_emoji: ':stevica:'});
 		return;
 	}
-	// Test if message is in valid format and set it as initiation message
-	const match = message.text.match(INITIATION_REGEX);
+	let match = message.text.match(INITIATION_REGEX);
 	if (match) {
 		// Check if enough time has passed before initiating again
-		const currentTime = new Date();
-		if (initiationTime && (currentTime - initiationTime) < MINIMUM_DELAY) {
-			postMessage(`<@${message.user}> Sacekaj jos ${Math.round((MINIMUM_DELAY - (currentTime - initiationTime)) / 1000)} sekundi brt.`);
+		let currentTime = new Date();
+		if (initiationTime && (currentTime - initiationTime) < config.minimumDelay * 1000) {
+			postMessage(`<@${message.user}> Sačekaj još ${Math.round((config.minimumDelay * 1000 - (currentTime - initiationTime)) / 1000)} sekundi brt.`);
 			return;
 		}
-		// TODO: check if emoji exists (try to add it to a message and if it works, remove it immediately)
-		reaction = match[1];
+		reaction = match[2] || config.defaultEmoji;
+		// TODO: Check if the reaction actually exists (not just if it is present) before continuing
+		// Create the initiation message
 		initiator = message.user;
-		initiationTime = new Date();
+		initiationTime = currentTime;
 		initiationMessageText = `<!here> Ajmoooo zglobeeex! :${reaction}: (<@${initiator}>)`;
 		postMessage(initiationMessageText);
 	}
 
-	// Set initiation message object and add first reaction to the message, and pin it
+	// Set initiation message object and add the first reaction to the message
 	if (message.text === initiationMessageText) {
 		msg = message;
 		bot._api('reactions.add', {channel: msg.channel, timestamp: msg.ts, name: reaction});
-		bot._api('pins.add', {channel: msg.channel, timestamp: msg.ts});
 	}
 });
 
-// Test if there is enough reactions
+// Test if there are enough reactions
 addListener('reaction_added', () => {
 	if (!msg) return;
 	bot._api('reactions.get', {channel: msg.channel, timestamp: msg.ts})
 		.then(res => {
-			// If there are enough reactions, start the game
-			const reactions = res.message.reactions;
-			const reactionObj = reactions.find(r => r.name === reaction);
-			if (reactionObj.count === 3 && !oneMoreTimer) {
-				oneMoreTimer = setTimeout(() => {
-					postMessage('<!here> jos 1');
-				}, ONE_MORE_TIMEOUT);
-			}
+			// Get the number of reactions
+			let reactions = res.message.reactions;
+			let reactionObj = reactions.find(r => r.name === reaction);
 
-			// Start the game!
-			if (reactionObj.count >= 4) { // 3 players + bot
-				clearTimeout(oneMoreTimer); // prevent sending @here jos 1
-				const players = reactionObj.users.slice(1).concat([initiator]); // remove bot from players and add initiator
-				const mentionPlayers = players.map(player => {
-					if (player === NENAD) {
-						return `<@${player}> sssssone`
-					}
-					return `<@${player}>`;
-				});
+			// If there's only one player missing for the game, set the one more player timer
+			if (reactionObj.count === 3 && !oneMorePlayerTimer) {
+				oneMorePlayerTimer = setTimeout(() => {
+					postMessage('<!here> još 1');
+				}, config.oneMoreTimeout);
+			}
+			// If we have enough players, announce the game!
+			else if (reactionObj.count >= 4) { // 3 players + bot
+				clearTimeout(oneMorePlayerTimer); // Prevent sending one more player message
+				let players = reactionObj.users.slice(1).concat([initiator]); // Remove bot from players and add initiator
+				let mentionPlayers = players.map(player => `<@${player}>`);
 				shuffle(mentionPlayers);
-				postMessage('idemooooo!!!', {
+				postMessage('Idemooooo!!!', {
 					attachments: [
 						{
 							fallback: 'Crveni',
@@ -127,13 +113,11 @@ addListener('reaction_added', () => {
 						}
 					]
 				});
-				// Bajdra
+				// If the response time was very fast, post the special message
 				const timeSinceInitiation = new Date() - initiationTime;
 				if (initiationTime && timeSinceInitiation < 5000) {
-					postMessage(`${timeSinceInitiation / 1000}sec fantaaazija`, {icon_emoji: ':bajdra:'});
+					postMessage(`${timeSinceInitiation / 1000}sec fantaaazija :bajdra:`);
 				}
-				// Remove pin and reset msg object
-				bot._api('pins.remove', {channel: msg.channel, timestamp: msg.ts});
 				msg = null;
 			}
 		});
