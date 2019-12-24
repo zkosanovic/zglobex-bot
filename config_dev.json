@@ -1,0 +1,9 @@
+{
+    "botName": "Zglobex Bot Dev",
+    "defaultEmoji": "zglobex",
+    "slackChannel": "zglobex-test",
+    "slackChannelId": "GS318L27R",
+    "minimumDelay": 10,
+    "oneMoreThreshold": 10,
+    "underRadarRegex": "zit[oa]"
+}
