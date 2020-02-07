@@ -4,6 +4,9 @@ const config = require('./config.json');
 const SLACK_API_TOKEN = process.env.SLACK_API_TOKEN;
 const INITIATION_REGEX = /ajmo+( :([0-9a-z-_]+):)?/;
 const UNDER_RADAR_REGEX = new RegExp(config.underRadarRegex);
+const GLUP_GO_REGEX = new RegExp(config.samoCosak);
+const COSAK_REGEX = new RegExp(config.glupGo);
+
 
 const SlackBot = require('slackbots');
 var bot = new SlackBot({
@@ -52,6 +55,14 @@ addListener('message', (message) => {
 	// Check if someone wants to play under the radar
 	if (message.text.match(UNDER_RADAR_REGEX)) {
 		postMessage(`<@${message.user}> *ALO, NEMA ISPOD ŽITA!*`, {icon_emoji: ':stevica:'});
+		return;
+	}
+	if (message.text.match(GLUP_GO_REGEX)) {
+		postMessage(`<@${message.user}> *KAKO GLUP GO! 😡*`, {icon_emoji: ':stevica:'});
+		return;
+	}
+	if (message.text.match(COSAK_REGEX)) {
+		postMessage(`<@${message.user}> *SAMO COSKARITE! 😡*`, {icon_emoji: ':stevica:'});
 		return;
 	}
 	let match = message.text.match(INITIATION_REGEX);
