@@ -5,5 +5,8 @@
     "slackChannelId": "G759BM2DA",
     "minimumDelay": 30,
     "oneMoreThreshold": 10,
-    "underRadarRegex": "ispod zita"
+    "underRadarRegex": "ispod zita",
+    "samoCosak": "cosak",
+    "glupGo": "glup go"
+
 }
