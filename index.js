@@ -107,6 +107,7 @@ addListener('reaction_added', () => {
 			// If we have enough players, announce the game!
 			else if (reactionObj.count >= 4) { // 3 players + bot
 				clearTimeout(oneMorePlayerTimer); // Prevent sending one more player message
+				oneMorePlayerTimer = null; // Clear the timer
 				let players = reactionObj.users.slice(1).concat([initiator]); // Remove bot from players and add initiator
 				let mentionPlayers = players.map(player => `<@${player}>`);
 				shuffle(mentionPlayers);
